@@ -48,8 +48,6 @@ const editNameInput= document.getElementById("editNameInput");
 const editUrlInput = document.getElementById("editUrlInput");
 const cancelEditBtn= document.getElementById("cancelEditBtn");
 const closeModalBtn= document.getElementById("closeModalBtn");
-const previewIcon  = document.getElementById("previewIcon");
-const previewName  = document.getElementById("previewName");
 
 /* ── State ────────────────────────────────────────────────── */
 let shortcuts     = loadShortcuts();
@@ -321,18 +319,7 @@ function removeShortcut(url) {
 
 /* ── Modal ────────────────────────────────────────────────── */
 function updatePreview() {
-  const name = editNameInput.value.trim();
-  const url  = safeNormalizeUrl(editUrlInput.value) || editUrlInput.value.trim();
-  previewName.textContent = name || "";
-  if (url && url.startsWith("http")) {
-    const fav = faviconFor(url);
-    previewIcon.src = fav;
-    previewIcon.onload = () => previewIcon.classList.add("loaded");
-    previewIcon.onerror = () => previewIcon.classList.remove("loaded");
-  } else {
-    previewIcon.src = "";
-    previewIcon.classList.remove("loaded");
-  }
+  // no-op: preview panel removed from minimal modal
 }
 
 function openAddModal() {
@@ -341,8 +328,6 @@ function openAddModal() {
   modalTitle.textContent = "Add Shortcut";
   saveEditBtn.textContent = "Add";
   editNameInput.value = ""; editUrlInput.value = "";
-  previewIcon.src = ""; previewIcon.classList.remove("loaded");
-  previewName.textContent = "";
   editModal.showModal();
   setTimeout(() => editNameInput.focus(), 0);
 }
