@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OTT Hub</title>
+  <style>
+    :root {
+      --bg: #0f1116;
+      --panel: #171a22;
+      --panel-hover: #1d2230;
+      --text: #e7eaf3;
+      --muted: #9ca3b7;
+      --accent: #5aa9ff;
+      --danger: #ff5f6d;
+      --border: #2a3042;
+      --shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #151b2c 0%, var(--bg) 45%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+    }
+
+    h1 {
+      margin: 0 0 18px;
+      font-size: 1.55rem;
+      letter-spacing: 0.2px;
+    }
+
+    .add-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 18px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .add-form input {
+      width: 100%;
+      background: #10131b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .add-form input:focus {
+      border-color: var(--accent);
+    }
+
+    .add-form button {
+      border: 0;
+      border-radius: 8px;
+      background: var(--accent);
+      color: #081323;
+      font-weight: 700;
+      padding: 10px 14px;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .add-form button:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+
+    .hint {
+      color: var(--muted);
+      margin: 0 0 14px;
+      min-height: 20px;
+      font-size: 0.92rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+      animation: fadeIn 220ms ease both;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      background: var(--panel-hover);
+      border-color: #37405a;
+    }
+
+    .launch-link {
+      color: inherit;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 34px;
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      flex: 0 0 20px;
+      background: #10131b;
+    }
+
+    .name {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .icon-btn {
+      border: 1px solid var(--border);
+      background: #10131b;
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      padding: 6px 9px;
+      font-size: 0.85rem;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: #171c28;
+      border-color: #3a4561;
+    }
+
+    .icon-btn.pinned {
+      color: #ffd76a;
+      border-color: #655429;
+      background: #1f1a0d;
+    }
+
+    .icon-btn.delete {
+      color: #ffb6bf;
+      border-color: #5f2b33;
+      background: #251216;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 18px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 740px) {
+      .add-form {
+        grid-template-columns: 1fr;
+      }
+
+      .add-form button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>OTT Launcher</h1>
+
+    <form id="addForm" class="add-form" autocomplete="off">
+      <input id="nameInput" type="text" placeholder="Name (e.g. Netflix)" required />
+      <input id="urlInput" type="url" placeholder="URL (e.g. https://www.netflix.com)" required />
+      <button type="submit">Add</button>
+    </form>
+
+    <p id="hint" class="hint"></p>
+
+    <section id="grid" class="grid" aria-live="polite"></section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "ottShortcuts";
+
+    const defaults = [
+      { name: "Netflix", url: "https://www.netflix.com", pinned: true },
+      { name: "Prime Video", url: "https://www.primevideo.com", pinned: true },
+      { name: "Disney+ Hotstar", url: "https://www.hotstar.com", pinned: false },
+      { name: "YouTube", url: "https://www.youtube.com", pinned: false }
+    ];
+
+    const addForm = document.getElementById("addForm");
+    const nameInput = document.getElementById("nameInput");
+    const urlInput = document.getElementById("urlInput");
+    const grid = document.getElementById("grid");
+    const hint = document.getElementById("hint");
+
+    let shortcuts = loadShortcuts();
+
+    function safeNormalizeUrl(raw) {
+      if (!raw) return null;
+      let value = raw.trim();
+      if (!/^https?:\/\//i.test(value)) {
+        value = `https://${value}`;
+      }
+
+      try {
+        const urlObj = new URL(value);
+        if (!["http:", "https:"].includes(urlObj.protocol)) return null;
+        urlObj.hash = "";
+        return urlObj.toString().replace(/\/$/, "");
+      } catch {
+        return null;
+      }
+    }
+
+    function extractDomain(url) {
+      try {
+        return new URL(url).hostname;
+      } catch {
+        return "";
+      }
+    }
+
+    function faviconFor(url) {
+      const domain = extractDomain(url);
+      return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=64`;
+    }
+
+    function saveShortcuts() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(shortcuts));
+    }
+
+    function loadShortcuts() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+          return [...defaults];
+        }
+
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) throw new Error("Invalid storage");
+
+        return parsed
+          .map((item) => ({
+            name: String(item.name || "").trim(),
+            url: safeNormalizeUrl(String(item.url || "")),
+            pinned: Boolean(item.pinned)
+          }))
+          .filter((item) => item.name && item.url);
+      } catch {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaults));
+        return [...defaults];
+      }
+    }
+
+    function sortShortcuts(list) {
+      return [...list].sort((a, b) => {
+        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function setHint(message, isError = false) {
+      hint.textContent = message;
+      hint.style.color = isError ? "#ff9aa5" : "var(--muted)";
+      if (!message) return;
+      window.clearTimeout(setHint.timer);
+      setHint.timer = window.setTimeout(() => {
+        hint.textContent = "";
+      }, 2600);
+    }
+
+    function render() {
+      const ordered = sortShortcuts(shortcuts);
+      grid.innerHTML = "";
+
+      if (!ordered.length) {
+        grid.innerHTML = `<div class="empty">No shortcuts yet. Add one above.</div>`;
+        return;
+      }
+
+      ordered.forEach((item) => {
+        const card = document.createElement("article");
+        card.className = "card";
+
+        const link = document.createElement("a");
+        link.className = "launch-link";
+        link.href = item.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.title = item.url;
+
+        const icon = document.createElement("img");
+        icon.className = "icon";
+        icon.src = faviconFor(item.url);
+        icon.alt = `${item.name} icon`;
+        icon.loading = "lazy";
+
+        const name = document.createElement("span");
+        name.className = "name";
+        name.textContent = item.name;
+
+        link.append(icon, name);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const pinBtn = document.createElement("button");
+        pinBtn.className = `icon-btn ${item.pinned ? "pinned" : ""}`.trim();
+        pinBtn.type = "button";
+        pinBtn.textContent = item.pinned ? "★ Pinned" : "☆ Pin";
+        pinBtn.addEventListener("click", () => togglePin(item.url));
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "icon-btn delete";
+        deleteBtn.type = "button";
+        deleteBtn.textContent = "Delete";
+        deleteBtn.addEventListener("click", () => removeShortcut(item.url));
+
+        actions.append(pinBtn, deleteBtn);
+        card.append(link, actions);
+        grid.append(card);
+      });
+    }
+
+    function findDuplicate(normalizedUrl) {
+      return shortcuts.some((item) => safeNormalizeUrl(item.url) === normalizedUrl);
+    }
+
+    function addShortcut(name, rawUrl) {
+      const cleanName = name.trim();
+      const cleanUrl = safeNormalizeUrl(rawUrl);
+
+      if (!cleanName || !cleanUrl) {
+        setHint("Please enter a valid name and URL.", true);
+        return;
+      }
+
+      if (findDuplicate(cleanUrl)) {
+        setHint("This URL already exists.", true);
+        return;
+      }
+
+      shortcuts.push({ name: cleanName, url: cleanUrl, pinned: false });
+      saveShortcuts();
+      render();
+      setHint("Shortcut added.");
+    }
+
+    function removeShortcut(url) {
+      const index = shortcuts.findIndex((item) => item.url === url);
+      if (index === -1) return;
+      shortcuts.splice(index, 1);
+      saveShortcuts();
+      render();
+      setHint("Shortcut removed.");
+    }
+
+    function togglePin(url) {
+      const index = shortcuts.findIndex((item) => item.url === url);
+      if (index === -1) return;
+      shortcuts[index].pinned = !shortcuts[index].pinned;
+      saveShortcuts();
+      render();
+    }
+
+    addForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      addShortcut(nameInput.value, urlInput.value);
+      addForm.reset();
+      nameInput.focus();
+    });
+
+    render();
+  </script>
+</body>
+</html>

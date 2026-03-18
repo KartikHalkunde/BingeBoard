@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BingeBoard — your personal streaming hub." />
+  <title>BingeBoard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Cinematic background -->
+  <div class="bg-canvas" aria-hidden="true">
+    <div class="bg-noise"></div>
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+  </div>
+
+  <!-- Theme toggle — floating icon, no button box -->
+  <button id="themeToggleBtn" class="theme-toggle" aria-label="Switch to light mode" title="Switch to light mode">
+    <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+    <svg id="iconSun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
+
+  <!-- Main app area -->
+  <main class="container">
+    <h1 class="sr-only">BingeBoard</h1>
+    <p id="hint" class="hint" role="status" aria-live="polite"></p>
+    <div class="grid-wrap">
+      <section id="grid" class="grid" aria-label="Streaming shortcuts" aria-live="polite"></section>
+    </div>
+  </main>
+
+  <!-- Bottom brand wordmark -->
+  <footer class="brand-footer" aria-label="BingeBoard">
+    <span class="wm-binge">Binge</span><span class="wm-board">Board</span>
+  </footer>
+
+  <!-- Edit / Add modal -->
+  <dialog id="editModal" class="modal">
+    <form id="editForm" class="modal-card" method="dialog" novalidate>
+      <button type="button" id="closeModalBtn" class="modal-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <h2 id="modalTitle">Add Shortcut</h2>
+      <div class="modal-body">
+        <label class="field">
+          <span>Name</span>
+          <input id="editNameInput" type="text" placeholder="e.g. Netflix" required autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>URL</span>
+          <input id="editUrlInput" type="url" placeholder="https://" required autocomplete="off" />
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="cancelEditBtn" class="btn btn-ghost">Cancel</button>
+        <button type="submit" id="saveEditBtn" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
