@@ -177,18 +177,36 @@ body {
 
 .grid {
   --tile-size: 90px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  --grid-gap-x: 24px;
+  --grid-gap-y: 28px;
+  --grid-max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 28px 24px;
-  align-items: start;
-  width: min(960px, 100%);
+  align-content: center;
+  gap: var(--grid-gap-y) var(--grid-gap-x);
+  width: 100%;
+  max-width: min(100%, var(--grid-max-width));
+}
+
+.grid[data-density="spacious"] {
+  --tile-size: 96px;
+  --grid-gap-x: 24px;
+  --grid-gap-y: 28px;
+}
+
+.grid[data-density="compact"] {
+  --tile-size: 84px;
+  --grid-gap-x: 18px;
+  --grid-gap-y: 24px;
 }
 
 /* ─── Card ──────────────────────────────────────────────── */
 .card {
   position: relative;
   text-align: center;
+  width: var(--tile-size);
+  flex: 0 0 var(--tile-size);
   animation: cardFadeIn .4s ease both;
   animation-delay: calc(var(--i, 0) * 50ms);
 }
@@ -225,8 +243,10 @@ body {
 /* Hover glow uses per-card --glow-color set by JS */
 .tile:hover {
   background: var(--surface-hov);
-  border-color: var(--border-hov);
-  box-shadow: 0 0 28px 6px var(--glow-color, rgba(229,9,20,.3));
+  border-color: color-mix(in srgb, var(--glow-color, rgba(20,33,61,.3)) 65%, var(--border-hov));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--glow-color, rgba(20,33,61,.16)) 75%, transparent),
+    0 0 18px 4px var(--glow-color, rgba(20,33,61,.16));
 }
 .tile:active { opacity: .85; transition-duration: .1s; }
 
@@ -363,19 +383,22 @@ body {
 .brand-footer {
   position: relative;
   z-index: 2;
-  padding: 16px 0 26px;
+  padding: 16px 0 22px;
   text-align: center;
-  font-family: 'Syne', sans-serif;
-  font-weight: 800;
-  font-size: 1.1rem;
-  letter-spacing: -.03em;
   user-select: none;
   opacity: .55;
   transition: opacity .3s ease;
 }
 .brand-footer:hover { opacity: .85; }
-.wm-binge { color: var(--text); transition: color .35s; }
-.wm-board  { color: var(--primary); }
+
+.brand-mark {
+  display: inline-block;
+  width: auto;
+  height: 2.1rem;
+  max-width: min(216px, 58vw);
+  object-fit: contain;
+  vertical-align: middle;
+}
 
 /* ─── Modal ──────────────────────────────────────────────── */
 .modal {
@@ -484,8 +507,8 @@ body {
   .container { padding: 36px 16px 16px; }
   .grid {
     --tile-size: 80px;
-    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-    gap: 20px 10px;
+    --grid-gap-x: 10px;
+    --grid-gap-y: 20px;
   }
 }
 

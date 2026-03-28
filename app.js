@@ -5,6 +5,7 @@
   const btn       = document.getElementById("themeToggleBtn");
   const iconMoon  = document.getElementById("iconMoon");
   const iconSun   = document.getElementById("iconSun");
+  const brandMark = document.getElementById("brandMark");
 
   applyTheme(localStorage.getItem(THEME_KEY) || "dark");
 
@@ -19,6 +20,10 @@
     const dark = theme === "dark";
     if (iconMoon) iconMoon.style.display = dark ? "" : "none";
     if (iconSun)  iconSun.style.display  = dark ? "none" : "";
+    if (brandMark) {
+      const src = dark ? brandMark.dataset.darkSrc : brandMark.dataset.lightSrc;
+      if (src) brandMark.src = src;
+    }
     if (btn) {
       const label = dark ? "Switch to light mode" : "Switch to dark mode";
       btn.title = label;
@@ -81,41 +86,12 @@ function faviconFor(url) {
   return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(d)}&sz=64`;
 }
 
-/* ── Dominant colour from favicon via Canvas ──────────────── */
-function getDominantColor(imgUrl) {
-  return new Promise((resolve) => {
-    if (glowCache[imgUrl]) { resolve(glowCache[imgUrl]); return; }
-
-    const img = new Image();
-    img.crossOrigin = "anonymous";
-    img.onload = () => {
-      try {
-        const sz = 16;
-        const c  = document.createElement("canvas");
-        c.width  = sz; c.height = sz;
-        const ctx = c.getContext("2d");
-        ctx.drawImage(img, 0, 0, sz, sz);
-        const d = ctx.getImageData(0, 0, sz, sz).data;
-
-        // Sum non-near-white, non-near-black pixels
-        let r = 0, g = 0, b = 0, count = 0;
-        for (let i = 0; i < d.length; i += 4) {
-          const a = d[i + 3];
-          if (a < 80) continue; // transparent
-          const lr = d[i], lg = d[i+1], lb = d[i+2];
-          const brightness = (lr + lg + lb) / 3;
-          if (brightness < 30 || brightness > 225) continue; // skip near-black/white
-          r += lr; g += lg; b += lb; count++;
-        }
-        if (count === 0) { resolve(null); return; }
-        const rgb = `${Math.round(r/count)},${Math.round(g/count)},${Math.round(b/count)}`;
-        glowCache[imgUrl] = rgb;
-        resolve(rgb);
-      } catch { resolve(null); }
-    };
-    img.onerror = () => resolve(null);
-    img.src = imgUrl;
-  });
+function getShortcutGlowColor(url) {
+  const domain = extractDomain(url).toLowerCase();
+  if (domain.includes("netflix")) return "229,9,20";
+  if (domain.includes("primevideo") || domain.includes("amazon")) return "66,153,225";
+  if (domain.includes("hotstar") || domain.includes("jiohotstar") || domain.includes("jio")) return "236,72,153";
+  return "20,33,61";
 }
 
 /* ── Shortcuts Storage ────────────────────────────────────── */
@@ -167,10 +143,15 @@ function toggleMenu(wrap) {
 
 /* ── Grid layout ──────────────────────────────────────────── */
 function applyGridTemplate(total) {
-  let tileSize = 90;
-  if (total <= 4)  tileSize = 96;
-  if (total >= 14) tileSize = 84;
-  grid.style.setProperty("--tile-size", `${tileSize}px`);
+  const columns = total > 6 ? 4 : total > 2 ? 3 : 2;
+  const tileSize = total > 6 ? 84 : total <= 4 ? 96 : 90;
+  const gapX = total > 6 ? 18 : 24;
+  const gapY = total > 6 ? 24 : 28;
+  const maxWidth = columns * tileSize + (columns - 1) * gapX;
+
+  grid.dataset.columns = String(columns);
+  grid.dataset.density = total > 6 ? "compact" : total <= 4 ? "spacious" : "regular";
+  grid.style.setProperty("--grid-max-width", `${maxWidth}px`);
 }
 
 /* ── Drag ─────────────────────────────────────────────────── */
@@ -224,13 +205,9 @@ function render() {
     img.loading = "lazy";
     tile.append(img);
 
-    // Extract dominant colour when icon loads, set CSS var
-    getDominantColor(favUrl).then(rgb => {
-      if (rgb) {
-        card.style.setProperty("--glow-color", `rgba(${rgb},.45)`);
-        tile.style.setProperty("--glow-color", `rgba(${rgb},.45)`);
-      }
-    });
+    const glowRgb = getShortcutGlowColor(item.url);
+    card.style.setProperty("--glow-color", `rgba(${glowRgb},.24)`);
+    tile.style.setProperty("--glow-color", `rgba(${glowRgb},.24)`);
 
     const name = document.createElement("span");
     name.className = "name";
