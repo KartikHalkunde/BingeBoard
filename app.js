@@ -193,8 +193,6 @@ function render() {
     const tile = document.createElement("a");
     tile.className = "tile";
     tile.href = item.url;
-    tile.target = "_blank";
-    tile.rel = "noopener noreferrer";
     tile.title = item.name;
 
     const img = document.createElement("img");
